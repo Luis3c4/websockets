@@ -6,8 +6,30 @@
     <title>mi chat</title>
     <script type="module">
         import { io } from 'https://cdn.socket.io/4.8.1/socket.io.esm.min.js';
-        const socket = io();
-        
+        const socket = io({
+            auth:{
+                serverOffset: 0
+            }
+        });
+        const form = document.getElementById('form');
+        const input = document.getElementById('input');
+        const messages = document.getElementById('messages');
+        // escucha el evento "chat message" del servidor
+        socket.on("chat message", (msg, serverOffset) => {
+            const item = document.createElement("li");
+            item.textContent = msg;
+            messages.appendChild(item);
+            //recupera el ultimo id del mensaje envia del servido y actuliza el valor del offset
+            socket.auth.serverOffset = serverOffset;
+        });
+
+        form.addEventListener("submit", (e) => {
+            e.preventDefault();
+            if (input.value) {
+                socket.emit("chat message", input.value);
+                input.value = "";
+            }
+        })
     </script>
     <style>
         *,
@@ -28,6 +50,14 @@
             height: 100vh;
             padding: 36px;
             grid-template-rows: 1fr;
+        }
+        #messages{
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+        }
+        #messages li {
+            padding: .5rem .5rem;
         }
         #chat {
             border: 1px solid #ccc;
@@ -72,6 +102,7 @@
 </head>
 <body>
     <section id="chat">
+        <ul id="messages"></ul>
         <form action="" id="form">
             <input type="text" name="message" id="input" placeholder="Type your message here..." autocomplete="off">
             <button type="submit">Enviar</button>
