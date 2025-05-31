@@ -54,18 +54,29 @@ io.on("connection", async(socket) => {
     // Emite el mensaje a todos los clientes conectados
     io.emit("chat message", msg, result.lastInsertRowid.toString());
   });
+  // Recupera los mensajes de la base de datos y los envía al cliente
   if (!socket.recovered) {
     try{
       const result = await db.execute({
         sql: "SELECT id, content FROM messages where id > ?",
-        args: []
-      })
+        args: [socket.handshake.auth.serverOffset ?? 0]
+      });
+      result.rows.forEach(row=>{
+        socket.emit("chat message", row.content, row.id.toString());
+      });
     }catch (error) {
       console.error("Error fetching messages:", error);
       return;
     }
-    
   }
+  socket.on("file upload", async(fileData) => {
+    // Aquí podrías manejar la carga de archivos, por ejemplo, guardándolos en el servidor o en un servicio de almacenamiento
+    console.log("File uploaded:", fileData);
+    // Emite un evento para notificar a los demás clientes sobre la carga del archivo
+    io.emit("file received", fileData);
+  });
+
+
 });
 
 app.use(logger("dev"));

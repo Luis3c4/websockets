@@ -1,112 +1,172 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>mi chat</title>
     <script type="module">
-        import { io } from 'https://cdn.socket.io/4.8.1/socket.io.esm.min.js';
-        const socket = io({
-            auth:{
-                serverOffset: 0
-            }
-        });
-        const form = document.getElementById('form');
-        const input = document.getElementById('input');
-        const messages = document.getElementById('messages');
-        // escucha el evento "chat message" del servidor
-        socket.on("chat message", (msg, serverOffset) => {
-            const item = document.createElement("li");
-            item.textContent = msg;
-            messages.appendChild(item);
-            //recupera el ultimo id del mensaje envia del servido y actuliza el valor del offset
-            socket.auth.serverOffset = serverOffset;
-        });
+      import { io } from "https://cdn.socket.io/4.8.1/socket.io.esm.min.js";
+      const socket = io({
+        auth: {
+          serverOffset: 0,
+        },
+      });
+      const form = document.getElementById("form");
+      const input = document.getElementById("input");
+      const messages = document.getElementById("messages");
+      const fileInput = document.getElementById("fileInput");
+      // escucha el evento "chat message" del servidor
+      socket.on("chat message", (msg, serverOffset) => {
+        const item = document.createElement("li");
+        item.textContent = msg;
+        messages.appendChild(item);
+        //recupera el ultimo id del mensaje envia del servido y actuliza el valor del offset
+        socket.auth.serverOffset = serverOffset;
+      });
+      socket.on("file received", (fileData) => {
+        const item = document.createElement("li");
+        if (fileData.type.startsWith("image/")) {
+          const img = document.createElement("img");
+          img.src = fileData.data;
+          img.alt = fileData.name;
+          img.style.maxWidth = "200px";
+          item.appendChild(img);
+        } else {
+          const link = document.createElement("a");
+          link.href = fileData.data;
+          link.download = fileData.name;
+          link.textContent = `Descargar ${fileData.name}`;
+          item.appendChild(link);
+        }
+        messages.appendChild(item);
+      });
+      fileInput.addEventListener("change", (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = () => {
+            const fileData = {
+              name: file.name,
+              type: file.type,
+              data: reader.result, // base64 string
+            };
+            socket.emit("file upload", fileData);
+          };
+          reader.readAsDataURL(file); // convierte a base64
+        }
+        fileInput.value = ""; // Limpia el input después de enviar el archivo
+      });
 
-        form.addEventListener("submit", (e) => {
-            e.preventDefault();
-            if (input.value) {
-                socket.emit("chat message", input.value);
-                input.value = "";
-            }
-        })
+      form.addEventListener("submit", (e) => {
+        e.preventDefault();
+        if (input.value) {
+          socket.emit("chat message", input.value);
+          input.value = "";
+        }
+      });
     </script>
     <style>
-        *,
-        *::before,
-        *::after {
-            box-sizing: border-box;
-        }
-        :root {
-            font-size: 16px;
-            line-height: 1.5;
-            color-scheme: light dark;
-        }
-        body{
-            margin: 0;
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-            display: grid;
-            place-content: center;
-            height: 100vh;
-            padding: 36px;
-            grid-template-rows: 1fr;
-        }
-        #messages{
-            list-style-type: none;
-            margin: 0;
-            padding: 0;
-        }
-        #messages li {
-            padding: .5rem .5rem;
-        }
-        #chat {
-            border: 1px solid #ccc;
-            width: 350px;
-            max-width: 600px;
-            height: 100%;
-            max-height: 800px;
-            border-radius: 4px;
-            overflow: hidden;
-            position: relative;
-        }
-        #form {
-            display: flex;
-            position: absolute;
-            bottom: 0;
-            width: 100%;
-            padding: 10px;
-            box-shadow: 0 -2px 5px rgb(255, 255, 255);
-        }
-        #input {
-            flex: 1;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            font-size: 16px;
-        }
-        #input:focus {
-            outline: none;
-            border-color: #d60626;
-        }
-        #form button {
-            padding: 10px 15px;
-            margin-left: 10px;
-            background-color: #d60626;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-        }
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+      :root {
+        font-size: 16px;
+        line-height: 1.5;
+        color-scheme: light dark;
+      }
+      body {
+        margin: 0;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue",
+          sans-serif;
+        display: grid;
+        place-content: center;
+        height: 100vh;
+        padding: 36px;
+        grid-template-rows: 1fr;
+      }
+      #messages {
+        list-style-type: none;
+        margin: 0;
+        padding: 0;
+        overflow-y: scroll;
+        height: 100%;
+        scroll-behavior: smooth;
+        padding-bottom: 40px;
+      }
+      #messages li {
+        padding: 0.5rem 0.5rem;
+      }
+      #chat {
+        border: 1px solid #ccc;
+        width: 400px;
+        max-width: 600px;
+        height: 100%;
+        max-height: 800px;
+        border-radius: 4px;
+        overflow: hidden;
+        position: relative;
+      }
+      #form {
+        flex-direction: column;
+        display: flex;
+        width: 100%;
+        padding: 10px;
+        gap: 10px;
+      }
+      #input {
+        flex: 1;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 16px;
+      }
+      #input:focus {
+        outline: none;
+        border-color: #d60626;
+      }
+      #form button {
+        padding: 10px 15px;
+        margin-left: 20px;
+        margin-right: 20px;
+        background-color: #d60626;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 16px;
+      }
+      #fileInput {
+        margin-right: 20px;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 16px;
+      }
+      .input-container {
+        display: flex;
+        width: 100%;
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <section id="chat">
-        <ul id="messages"></ul>
-        <form action="" id="form">
-            <input type="text" name="message" id="input" placeholder="Type your message here..." autocomplete="off">
-            <button type="submit">Enviar</button>
-        </form>
+      <ul id="messages"></ul>
     </section>
-</body>
+    <form action="" id="form">
+      <input type="file" id="fileInput" />
+      <div class="input-container">
+        <input
+          type="text"
+          name="message"
+          id="input"
+          placeholder="Type your message here..."
+          autocomplete="off"
+        />
+        <button type="submit">Enviar</button>
+      </div>
+    </form>
+  </body>
 </html>
