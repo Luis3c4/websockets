@@ -23,9 +23,9 @@
         //recupera el ultimo id del mensaje envia del servido y actuliza el valor del offset
         socket.auth.serverOffset = serverOffset;
       });
-      socket.on("file received", (fileData) => {
+      socket.on("file received",(fileData) => {
         const item = document.createElement("li");
-        if (fileData.type.startsWith("image/")) {
+        if (fileData.type && fileData.type.startsWith("image/")) {
           const img = document.createElement("img");
           img.src = fileData.data;
           img.alt = fileData.name;
@@ -40,6 +40,7 @@
         }
         messages.appendChild(item);
       });
+
       fileInput.addEventListener("change", (e) => {
         const file = e.target.files[0];
         if (file) {

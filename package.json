@@ -1,22 +1,29 @@
 {
-  "name": "sistemasdistribuidos",
+  "name": "websockets",
   "version": "1.0.0",
-  "description": "",
   "main": "index.js",
-  "type": "module",
   "scripts": {
-    "dev": "node --watch ./server/index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev" : "node --watch ./server/index.js"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Luis3c4/websockets.git"
+  },
+  "type": "module",
   "keywords": [],
   "author": "",
   "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Luis3c4/websockets/issues"
+  },
+  "homepage": "https://github.com/Luis3c4/websockets#readme",
+  "description": "",
   "dependencies": {
-    "@libsql/client": "^0.15.7",
+    "@libsql/client": "^0.15.8",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
     "morgan": "^1.10.0",
-    "sistemasdistribuidos": "file:",
     "socket.io": "^4.8.1"
   }
 }
